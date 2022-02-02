@@ -1,3 +1,10 @@
+questions
+
+- should I include two: hook = get_hook(create_if_not_exists=True) ? One inside trainining and another in testing?
+- how to use the validation dataser?
+
+
+
 # Image Classification using AWS SageMaker
 
 Use AWS Sagemaker to train a pretrained model that can perform image classification by using the Sagemaker profiling, debugger, hyperparameter tuning and other good ML engineering practices. This can be done on either the provided dog breed classication data set or one of your choice.
@@ -39,3 +46,6 @@ Remember that your README should:
 
 ## Standout Suggestions
 **TODO (Optional):** This is where you can provide information about any standout suggestions that you have attempted.
+
+
+
