@@ -2,6 +2,10 @@ questions
 
 - should I include two: hook = get_hook(create_if_not_exists=True) ? One inside trainining and another in testing?
 - how to use the validation dataser?
+- what is a data channel in this context - tuner.fit({"training": inputs}) ?
+- do I need to download the data everytime i need to train?
+- how do i pass the s3 bucket to the script?
+- Do i need to tune and then to train again?
 
 
 

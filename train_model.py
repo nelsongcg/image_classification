@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 logger.addHandler(logging.StreamHandler(sys.stdout))
 from smdebug import modes
-
+import glob
 #TODO: Import dependencies for Debugging andd Profiling
 
 
@@ -38,6 +38,7 @@ class dogBreedsDataset(Dataset):
         for i,c in enumerate(classes_names):
             label = int(c[:3])
             file_names = os.listdir(os.path.join(data_dir,c))
+            file_names = list(filter(lambda k: 'jpg' in k, file_names))
             file_names.sort()
             self.image_list+=zip([c]*len(file_names),file_names,[label]*len(file_names))
         
@@ -132,20 +133,19 @@ def net():
     return model
 
 def create_data_loaders(data_dir, batch_size):
-    
-    #Download data from S3
-    if len(os.listdir('data/')) == 0:
-        s3 = boto3.resource('s3')
-        bucket = s3.Bucket(os.environ["DEFAULT_S3_BUCKET"])
-        s3_folder = 'dogImages'
-        local_dir = 'data'
-        for obj in bucket.objects.filter(Prefix=s3_folder):
-            target = obj.key if local_dir is None else os.path.join(local_dir, os.path.relpath(obj.key, s3_folder))
-            if not os.path.exists(os.path.dirname(target)):
-                os.makedirs(os.path.dirname(target))
-            if obj.key[-1] == '/':
-                continue
-            bucket.download_file(obj.key, target)
+
+    s3 = boto3.resource('s3')
+    bucket =  s3.Bucket('sagemaker-ap-northeast-1-985768962182')
+    s3_folder = 'dogImages'
+    local_dir = None
+    for obj in bucket.objects.filter(Prefix=s3_folder):
+        target = obj.key if local_dir is None else os.path.join(local_dir, os.path.relpath(obj.key, s3_folder))
+        if not os.path.exists(os.path.dirname(target)):
+            os.makedirs(os.path.dirname(target))
+        if obj.key[-1] == '/':
+            continue
+        bucket.download_file(obj.key, target)
+
 
 
     #create data loader
@@ -163,12 +163,12 @@ def main(args):
     
     # cross entropy will be used as a loss function and opimitizer will be Adam
     loss_criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.fc.parameters(), lr=0.001)
+    optimizer = optim.Adam(model.fc.parameters(), lr=args.lr)
     
     
     #get data loaders
-    train_loader = create_data_loaders(data_dir='data/train',batch_size=args.batch_size)
-    test_loader = create_data_loaders(data_dir='data/test',batch_size=args.batch_size)
+    train_loader = create_data_loaders(data_dir='dogImages/train',batch_size=args.batch_size)
+    test_loader = create_data_loaders(data_dir='dogImages/test',batch_size=args.batch_size)
 
     #train model
     model=train(model, train_loader, loss_criterion, optimizer)
@@ -177,7 +177,7 @@ def main(args):
     test(model, test_loader,criterion=loss_criterion)
     
     #save model
-    torch.save(model, 'model/model.pth')
+    torch.save(model, 'model.pth')
 
 if __name__=='__main__':
     
@@ -185,6 +185,8 @@ if __name__=='__main__':
     parser=argparse.ArgumentParser()
     parser.add_argument("--batch_size", type=int, default=100)
     parser.add_argument("--epoch", type=int, default=2)
+    parser.add_argument("--lr", type=float, default=0.001)
+    
     args=parser.parse_args()
     
     main(args)
