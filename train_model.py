@@ -96,7 +96,7 @@ def train(model, train_loader, criterion, optimizer):
     hook = get_hook(create_if_not_exists=True)
     
     if hook:
-        hook.register_loss(optimizer)
+        hook.register_loss(criterion)
 
     for epoch in range(1, args.epoch+1):
         if hook:
