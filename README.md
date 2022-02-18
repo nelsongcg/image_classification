@@ -1,38 +1,22 @@
-questions
-
-- should I include two: hook = get_hook(create_if_not_exists=True) ? One inside trainining and another in testing?
-- how to use the validation dataser?
-- what is a data channel in this context - tuner.fit({"training": inputs}) ?
-- do I need to download the data everytime i need to train?
-- how do i pass the s3 bucket to the script?
-- Do i need to tune and then to train again?
-
-
-
 # Image Classification using AWS SageMaker
 
-Use AWS Sagemaker to train a pretrained model that can perform image classification by using the Sagemaker profiling, debugger, hyperparameter tuning and other good ML engineering practices. This can be done on either the provided dog breed classication data set or one of your choice.
+This project shows how to use AWS Sagemaker to train a pretrained model that can perform image classification by using the Sagemaker profiling, debugger, and hyperparameter tuning. 
+
+# Dataset
+As a POC we are working on a dog breed datset, which contains images of dogs categorized into 133 breeds.
+
+![ScreenShot](images/dogbreeds_frequency.png)
 
 ## Project Set Up and Installation
-Enter AWS through the gateway in the course and open SageMaker Studio. 
-Download the starter files.
-Download/Make the dataset available. 
+To make use of this set up is necessary to open a notebook instance in Sagemaker and upload the dataset on a S3 bucket. The notebook instance needs to have access to the bucket.
 
-## Dataset
-The provided dataset is the dogbreed classification dataset which can be found in the classroom.
-The project is designed to be dataset independent so if there is a dataset that is more interesting or relevant to your work, you are welcome to use it to complete the project.
 
-### Access
-Upload the data to an S3 bucket through the AWS Gateway so that SageMaker has access to the data. 
 
 ## Hyperparameter Tuning
-What kind of model did you choose for this experiment and why? Give an overview of the types of parameters and their ranges used for the hyperparameter search
+The model model tuned in order to give a better performanced, namely in terms of batch size and learning rates.
 
-Remember that your README should:
-- Include a screenshot of completed training jobs
-- Logs metrics during the training process
-- Tune at least two hyperparameters
-- Retrieve the best best hyperparameters from all your training jobs
+![ScreenShot](images/hyperparameter_result.png)
+
 
 ## Debugging and Profiling
 **TODO**: Give an overview of how you performed model debugging and profiling in Sagemaker
@@ -48,8 +32,7 @@ Remember that your README should:
 
 **TODO** Remember to provide a screenshot of the deployed active endpoint in Sagemaker.
 
-## Standout Suggestions
-**TODO (Optional):** This is where you can provide information about any standout suggestions that you have attempted.
+
 
 
 
