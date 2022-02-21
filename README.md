@@ -19,7 +19,10 @@ The model model tuned in order to give a better performanced, namely in terms of
 
 
 ## Debugging and Profiling
-**TODO**: Give an overview of how you performed model debugging and profiling in Sagemaker
+There doesn't seem to be any anomalous behavior observed
+
+![ScreenShot](images/debug.png)
+
 
 ### Results
 **TODO**: What are the results/insights did you get by profiling/debugging your model?

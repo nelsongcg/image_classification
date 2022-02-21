@@ -1,5 +1,4 @@
-#TODO: Import your dependencies.
-#For instance, below are some dependencies you might need if you are using Pytorch
+
 import numpy as np
 import torch
 import torch.nn as nn
@@ -16,13 +15,12 @@ import sys
 from tqdm import tqdm
 from PIL import ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True
+from smdebug.pytorch import get_hook
+from smdebug import modes
 
 logger=logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 logger.addHandler(logging.StreamHandler(sys.stdout))
-
-
-import argparse
 
 def test(model, test_loader, criterion):
     model.eval()
@@ -36,24 +34,35 @@ def test(model, test_loader, criterion):
         running_loss += loss.item() * inputs.size(0)
         running_corrects += torch.sum(preds == labels.data)
 
-    total_loss = running_loss // len(test_loader)
-    total_acc = running_corrects.double() // len(test_loader)
+    total_loss = running_loss / len(test_loader.dataset)
+    total_acc = running_corrects.double() / len(test_loader.dataset)
     
     logger.info(f"Testing Loss: {total_loss}")
     logger.info(f"Testing Accuracy: {total_acc}")
 
-def train(model, train_loader,validation_loader, criterion, optimizer):
+def train(model, train_loader, validation_loader, criterion, optimizer):
+    hook = get_hook(create_if_not_exists=True)
     epochs=50
     best_loss=1e6
     image_dataset={'train':train_loader, 'valid':validation_loader}
     loss_counter=0
     
+
+    
+    
+    if hook:
+        hook.register_loss(criterion)
+    
     for epoch in range(epochs):
         logger.info(f"Epoch: {epoch}")
         for phase in ['train', 'valid']:
             if phase=='train':
+                if hook:
+                    hook.set_mode(modes.TRAIN)
                 model.train()
             else:
+                if hook:
+                    hook.set_mode(modes.EVAL)
                 model.eval()
             running_loss = 0.0
             running_corrects = 0
@@ -70,9 +79,12 @@ def train(model, train_loader,validation_loader, criterion, optimizer):
                 _, preds = torch.max(outputs, 1)
                 running_loss += loss.item() * inputs.size(0)
                 running_corrects += torch.sum(preds == labels.data)
+#                 logger.info(f"Correct prediction count: {running_corrects}, running loss: {running_loss}, phase {phase}, epoch {epoch}")
+                
 
-            epoch_loss = running_loss // len(image_dataset[phase])
-            epoch_acc = running_corrects // len(image_dataset[phase])
+            epoch_loss = running_loss / len(image_dataset[phase].dataset)
+            epoch_acc = running_corrects / len(image_dataset[phase].dataset)
+#             logger.info(f"Epoch {epoch} accuracy: {epoch_acc}, loss: {epoch_loss}, phase: {phase}")
             
             if phase=='valid':
                 if epoch_loss<best_loss:
@@ -90,7 +102,6 @@ def train(model, train_loader,validation_loader, criterion, optimizer):
         if epoch==0:
             break
     return model
-
     
 def net():
     model = models.resnet50(pretrained=True)
@@ -131,19 +142,30 @@ def create_data_loaders(data, batch_size):
     
     return train_data_loader, test_data_loader, validation_data_loader
 
-
 def main(args):
+    logger.info(f'Hyperparameters are LR: {args.learning_rate}, Batch Size: {args.batch_size}')
+    logger.info(f'Data Paths: {args.data}')
 
+
+    
+    train_loader, test_loader, validation_loader=create_data_loaders(args.data, args.batch_size)
+    
+    logger.info(f'Train size: {len(train_loader.dataset)}')
+    logger.info(f'Test size: {len(test_loader.dataset)}')
+    logger.info(f'Validation size: {len(validation_loader.dataset)}')
+    
     model=net()
     
     criterion = nn.CrossEntropyLoss(ignore_index=133)
     optimizer = optim.Adam(model.fc.parameters(), lr=args.learning_rate)
     
-    train_loader, test_loader, validation_loader=create_data_loaders(args.data, args.batch_size)
-    model=train(model, train_loader,validation_loader, criterion, optimizer)
-
+    logger.info("Starting Model Training")
+    model=train(model, train_loader, validation_loader, criterion, optimizer)
+    
+    logger.info("Testing Model")
     test(model, test_loader, criterion)
-
+    
+    logger.info("Saving Model")
     torch.save(model.cpu().state_dict(), os.path.join(args.model_dir, "model.pth"))
 
 if __name__=='__main__':
@@ -153,6 +175,15 @@ if __name__=='__main__':
     parser.add_argument('--data', type=str, default=os.environ['SM_CHANNEL_TRAINING'])
     parser.add_argument('--model_dir', type=str, default=os.environ['SM_MODEL_DIR'])
     parser.add_argument('--output_dir', type=str, default=os.environ['SM_OUTPUT_DATA_DIR'])
+
+#     parser.add_argument('--learning_rate', type=float,default=0.002092665253964378)
+#     parser.add_argument('--batch_size', type=int, default=32)
+#     parser.add_argument('--data', type=str, default='dogImages/')
+#     parser.add_argument('--model_dir', type=str, default='model/')
+#     parser.add_argument('--output_dir', type=str, default='output/')
+    
+    
+
     
     args=parser.parse_args()
     print(args)
