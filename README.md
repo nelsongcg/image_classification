@@ -23,17 +23,19 @@ There doesn't seem to be any anomalous behavior observed
 
 ![ScreenShot](images/debug.png)
 
-
-### Results
-**TODO**: What are the results/insights did you get by profiling/debugging your model?
-
-**TODO** Remember to provide the profiler html/pdf file in your submission.
+The full report can be seen in the folder 'ProfilerReport'
 
 
 ## Model Deployment
-**TODO**: Give an overview of the deployed model and instructions on how to query the endpoint with a sample input.
+The model was deployed using ml.g4dn.xlarge using autocale as shown in the figures below
 
-**TODO** Remember to provide a screenshot of the deployed active endpoint in Sagemaker.
+![ScreenShot](images/endpoint.png)
+![ScreenShot](images/endpoint_autoscaling.png)
+
+To query the model you need to pass the image was shown in the figures below
+
+![ScreenShot](images/query_model.png)
+
 
 
 
